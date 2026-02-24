@@ -1,0 +1,61 @@
+---
+- name: Post-Installation Configuration
+  hosts: ubuntu_servers
+  gather_facts: yes
+  
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Upgrade all packages
+      apt:
+        upgrade: dist
+        autoremove: yes
+
+    - name: Ensure SSH is installed
+      apt:
+        name: openssh-server
+        state: present
+
+    - name: Ensure SSH is enabled and running
+      systemd:
+        name: ssh
+        enabled: yes
+        state: started
+
+    - name: Configure SSH for security
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+        state: present
+      loop:
+        - { regexp: '^#?PermitRootLogin', line: 'PermitRootLogin yes' }
+        - { regexp: '^#?PubkeyAuthentication', line: 'PubkeyAuthentication yes' }
+        - { regexp: '^#?PasswordAuthentication', line: 'PasswordAuthentication yes' }
+      notify: restart ssh
+
+    - name: Install Python3 and pip
+      apt:
+        name:
+          - python3
+          - python3-pip
+        state: present
+
+    - name: Set hostname based on inventory
+      hostname:
+        name: "{{ inventory_hostname }}"
+
+    - name: Create deployment marker
+      file:
+        path: /root/.deployment_complete
+        state: touch
+        mode: '0644'
+
+  handlers:
+    - name: restart ssh
+      systemd:
+        name: ssh
+        state: restarted

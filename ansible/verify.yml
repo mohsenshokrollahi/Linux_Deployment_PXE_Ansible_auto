@@ -1,0 +1,26 @@
+---
+- name: Verify Deployment
+  hosts: ubuntu_servers
+  gather_facts: yes
+  
+  tasks:
+    - name: Check SSH connectivity
+      ping:
+
+    - name: Verify SSH service status
+      systemd:
+        name: ssh
+      register: ssh_status
+
+    - name: Display SSH status
+      debug:
+        msg: "SSH is {{ ssh_status.status.ActiveState }}"
+
+    - name: Check deployment marker
+      stat:
+        path: /root/.deployment_complete
+      register: marker
+
+    - name: Deployment status
+      debug:
+        msg: "Deployment {{ 'COMPLETE' if marker.stat.exists else 'INCOMPLETE' }}"

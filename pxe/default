@@ -1,0 +1,9 @@
+DEFAULT vesamenu.c32
+TIMEOUT 100
+PROMPT 0
+MENU TITLE Ubuntu Auto Deployment
+
+LABEL ubuntu-auto
+  MENU LABEL ^Ubuntu 22.04 Automated Install
+  KERNEL ubuntu-installer/amd64/linux
+  APPEND initrd=ubuntu-installer/amd64/initrd.gz auto=true priority=critical url=http://<PXE_SERVER_IP>/preseed.cfg netcfg/get_hostname=ubuntu netcfg/get_domain=local
